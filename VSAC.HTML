@@ -1,0 +1,83 @@
+<!-- This Script is written by Prashant Godara for public use-->
+<!DOCTYPE html>
+<html>
+<head>
+<title>VSAC</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+<script>
+var interval;
+
+function cancelCheck(){
+	window.clearInterval(interval);
+	$("#div1").html("Slot check stopped");
+}
+function getData(){
+	if($("#pin").val() == ""){
+		window.alert("Please enter a Pincode....");
+	}else if($("#date").val()==""){
+		window.alert("Please choose a date....");
+	}else if(!($('#18')[0].checked || $('#45')[0].checked)){
+		window.alert("Please select age group....");
+	}else{
+		interval = window.setInterval(ajax_call, 1000 * 3);//run ajax call every 3 seconds
+	}
+	
+}
+
+
+var ajax_call = function() {
+		$("#div1").html("Rechecking.....");
+		var url="https://cdn-api.co-vin.in/api/v2/appointment/sessions/public/calendarByPin?pincode=";
+		var pin=$("#pin").val();
+		var date = "&date="+$("#date").val().slice(8,10)+"-"+$("#date").val().slice(5,7)+"-"+$("#date").val().slice(0,4);
+		$.ajax({
+				type: "GET",
+				url: url+pin+date,
+				dataType: 'json',
+				headers: {
+					"Authorization": "http"
+				},
+				success: function (result){
+					if(result.centers.length!=0){
+						
+						var str="";
+						for(var i=0;i<result.centers.length;i++){
+							if($('#18')[0].checked && result.centers[i].sessions[0].min_age_limit==18 && result.centers[i].sessions[0].available_capacity>0){
+								str += "NAME:"+result.centers[i].name+"\r\nMIN_AGE:"+result.centers[i].sessions[0].min_age_limit+"\r\nDATE:"+result.centers[i].sessions[0].date+"\r\nAVAILABLE_CAPACITY:"+result.centers[i].sessions[0].available_capacity+"\r\nDOSE1_AVAILABLE_CAPACITY:"+result.centers[i].sessions[0].available_capacity_dose1+"\r\nDOSE2_AVAILABLE_CAPACITY:"+result.centers[i].sessions[0].available_capacity_dose2+"\r\n============================================";
+							}else if($('#45')[0].checked && result.centers[i].sessions[0].min_age_limit==45 && result.centers[i].sessions[0].available_capacity>0){
+								str += "NAME:"+result.centers[i].name+"\r\nMIN_AGE:"+result.centers[i].sessions[0].min_age_limit+"\r\nDATE:"+result.centers[i].sessions[0].date+"\r\nAVAILABLE_CAPACITY:"+result.centers[i].sessions[0].available_capacity+"\r\nDOSE1_AVAILABLE_CAPACITY:"+result.centers[i].sessions[0].available_capacity_dose1+"\r\nDOSE2_AVAILABLE_CAPACITY:"+result.centers[i].sessions[0].available_capacity_dose2+"\r\n============================================";
+							}
+						}
+						if(str!=""){
+							window.clearInterval(interval);
+							window.alert(str);
+						}
+						$("#div1").html("");
+						
+					}else{
+						window.clearInterval(interval);
+						$("#div1").html("No Vaccinationation Ceneters fetched for selected dates");
+					}
+				}
+			});
+}
+</script>
+</head>
+<body style="background-image: url('https://wallpaperaccess.com/full/740056.jpg');background-size: contain;">
+
+<h1 align="center" style="color:beige;">Vaccine Slot Availabilty Checker</h1>
+<h2 align="center" style="color:beige;">Get vaccination sessions by PINCODE for 7 days from the specified date.</h2>
+<p align="center" style="color:beige;">**This will get planned vaccination sessions for 7 days from a specific date in a given pincode.</p>
+<p align="center" style="color:beige;">It checks for the slot every 3 seconds. As only 100 checks per 5 minutes allowed.</p>
+<div align="center" style="color: beige;">
+<div><input type="number" id="pin" placeholder="PINCODE"></input></div>
+<div style="margin-top: 6px;"><input type="date" id="date"></input></div>
+<div style="margin-top: 6px;"><input type="radio" name="JTP" id="18" value="18">18-44<br>   
+<input type="radio" name="JTP" id="45" value="45">45+<br></div>
+<div style="margin-top: 6px;"><button onclick="getData()">Go</button></div>
+<div style="margin-top: 6px;"><button onclick="cancelCheck()">Stop Checking</button></div>
+</div>
+<div style="margin-top: 6px;" align="center"><span id="div1"  style="background-color:black;color: aliceblue;padding-top: 6px;padding-bottom: 6px;"></span></div>
+
+</body>
+</html>
